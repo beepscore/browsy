@@ -12,7 +12,25 @@ https://github.com/beepscore/websearcher
 """
 
 
-def get_octable_text(search_string):
+def url(search_string, date_string):
+    """
+    date_string of the form ddMONyyyy e.g. 25OCT2018.
+    When requesting options, must be in the future?
+    Must be a valid option expiration date for that stock?
+    return url
+    """
+    base_url = 'https://www.nseindia.com'
+    query_prefix = '/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?'
+    
+    date_query = ''
+    if date_string is not None:
+        date_query = f'&date={date_string}'
+
+    url_string = base_url + query_prefix + search_string + date_query
+    return url_string
+
+
+def get_octable_text(url):
     """
     Use browser to request info
     wait for javascript to run and return html for id
@@ -21,10 +39,6 @@ def get_octable_text(search_string):
     # browser = webdriver.Firefox()
     browser = webdriver.Chrome()
 
-    base_url = "https://www.nseindia.com"
-    query_prefix = "/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?"
-
-    url = base_url + query_prefix + search_string
     browser.get(url)
 
     try:
@@ -48,7 +62,7 @@ def get_octable_text(search_string):
         browser.quit()
 
 
-def get_dataframe(search_string):
+def get_dataframe(url):
     """
     :param search_string:
     :return: dataframe
@@ -63,10 +77,10 @@ def get_dataframe(search_string):
 
     # read from local data file
     # this can be handy during development
-    # df = pd.read_csv('./data/octable.txt', sep=' ', names=column_names, skiprows=10)
+    # df = pd.read_csv('./data/banknifty_29nov2018_octable.txt', sep=' ', names=column_names, skiprows=10)
 
     # read from web
-    octable_text = get_octable_text(search_string)
+    octable_text = get_octable_text(url)
     # https://stackoverflow.com/questions/20696479/pandas-read-csv-from-string-or-package-data
     df = pd.read_csv(StringIO(octable_text), dtype=object, sep=' ', names=column_names, skiprows=10)
 
@@ -75,16 +89,20 @@ def get_dataframe(search_string):
 
 if __name__ == '__main__':
 
-    search_string = "segmentLink=17&instrument=OPTIDX&symbol=BANKNIFTY&date=25OCT2018"
-    df = get_dataframe(search_string)
+    search_string = 'segmentLink=17&instrument=OPTIDX&symbol=BANKNIFTY'
+    date_string = '29NOV2018'
+    url = url(search_string, date_string)
+    print(url)
+    # https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?segmentLink=17&instrument=OPTIDX&symbol=BANKNIFTY&date=29NOV2018
+    df = get_dataframe(url)
 
     print(df.head())
     """
-        c_oi c_chng_in_oi c_volume   ...   p_volume p_chng_in_oi    p_oi
-    0      -            -        -   ...        586        5,520  32,760
-    1      -            -        -   ...         11          240     760
-    2  2,160         -360       18   ...      2,529        3,280  75,960
-    3      -            -        -   ...         25          360     640
-    4      -            -        -   ...        343       -3,560   7,720
+         c_oi c_chng_in_oi c_volume   ...    p_volume p_chng_in_oi     p_oi
+    0   2,120            -       26   ...          78          -20   38,460
+    1       -            -        -   ...          52          540    5,660
+    2  18,700           60        7   ...         541        1,160  160,980
+    3       -            -        -   ...          40          560   10,380
+    4       -            -        -   ...           -            -    5,720
     """
 
