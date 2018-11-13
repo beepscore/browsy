@@ -30,11 +30,13 @@ def url(search_string, date_string):
     return url_string
 
 
-def get_octable_text(url):
+def get_text(url, css_id):
     """
-    Use browser to request info
-    wait for javascript to run and return html for id
-    return empty string if timeout or error
+    Uses browser to request info.
+    Waits for javascript to run and return html. Selects by css_id.
+    :param url: url to load
+    :param css_id: id of page html element to select
+    return string. return empty string if timeout or error
     """
     # browser = webdriver.Firefox()
     browser = webdriver.Chrome()
@@ -44,10 +46,9 @@ def get_octable_text(url):
     try:
         # http://stackoverflow.com/questions/37422832/waiting-for-a-page-to-load-in-selenium-firefox-w-python?lq=1
         # http://stackoverflow.com/questions/5868439/wait-for-page-load-in-selenium
-        id_octable = "octable"
-        WebDriverWait(browser, 6).until(lambda d: d.find_element_by_id(id_octable).is_displayed())
-        octable = browser.find_element_by_id(id_octable)
-        return octable.text
+        WebDriverWait(browser, 6).until(lambda d: d.find_element_by_id(css_id).is_displayed())
+        element = browser.find_element_by_id(css_id)
+        return element.text
 
     except TimeoutException:
         print("TimeoutException, returning empty string")
@@ -62,27 +63,22 @@ def get_octable_text(url):
         browser.quit()
 
 
-def get_dataframe(url):
+def get_dataframe(url, css_id, column_names):
     """
     :param url: url to load
+    :param css_id: id of element to select
+    :param column_names: column names for dataframe
     :return: dataframe
     """
-
-    # avoid duplicate column names
-    column_names = ['c_oi', 'c_chng_in_oi', 'c_volume', 'c_iv', 'c_ltp',
-                    'c_net_chng', 'c_bid_qty', 'c_bid_price', 'c_ask_price', 'c_ask_qty',
-                    'strike price',
-                    'p_bid_qty', 'p_bid_price', 'p_ask_price', 'p_ask_qty',
-                    'p_net chng', 'p_ltp', 'p_iv', 'p_volume', 'p_chng_in_oi', 'p_oi']
 
     # read from local data file
     # this can be handy during development
     # df = pd.read_csv('./data/banknifty_29nov2018_octable.txt', sep=' ', names=column_names, skiprows=10)
 
     # read from web
-    octable_text = get_octable_text(url)
+    text = get_text(url, css_id)
     # https://stackoverflow.com/questions/20696479/pandas-read-csv-from-string-or-package-data
-    df = pd.read_csv(StringIO(octable_text), dtype=object, sep=' ', names=column_names, skiprows=10)
+    df = pd.read_csv(StringIO(text), dtype=object, sep=' ', names=column_names, skiprows=10)
 
     return df
 
@@ -94,7 +90,17 @@ if __name__ == '__main__':
     url = url(search_string, date_string)
     print(url)
     # https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?segmentLink=17&instrument=OPTIDX&symbol=BANKNIFTY&date=29NOV2018
-    df = get_dataframe(url)
+
+    css_id = "octable"
+
+    # avoid duplicate column names
+    column_names = ['c_oi', 'c_chng_in_oi', 'c_volume', 'c_iv', 'c_ltp',
+                    'c_net_chng', 'c_bid_qty', 'c_bid_price', 'c_ask_price', 'c_ask_qty',
+                    'strike price',
+                    'p_bid_qty', 'p_bid_price', 'p_ask_price', 'p_ask_qty',
+                    'p_net chng', 'p_ltp', 'p_iv', 'p_volume', 'p_chng_in_oi', 'p_oi']
+
+    df = get_dataframe(url, css_id, column_names)
 
     print(df.head())
     """
