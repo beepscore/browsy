@@ -64,7 +64,7 @@ def get_octable_text(url):
 
 def get_dataframe(url):
     """
-    :param search_string:
+    :param url: url to load
     :return: dataframe
     """
 
