@@ -14,9 +14,9 @@ https://github.com/beepscore/websearcher
 
 def url(search_string, date_string):
     """
-    date_string of the form ddMONyyyy e.g. 25OCT2018.
-    When requesting options, must be in the future?
-    Must be a valid option expiration date for that stock?
+    date_string of the form ddMONyyyy e.g. 25OCT2018, 31JAN2019
+    When requesting options, must be in the future.
+    Must be a valid option expiration date for that stock.
     return url
     """
     base_url = 'https://www.nseindia.com'
@@ -86,7 +86,7 @@ def get_dataframe(url, css_id, column_names):
 if __name__ == '__main__':
 
     search_string = 'segmentLink=17&instrument=OPTIDX&symbol=BANKNIFTY'
-    date_string = '29NOV2018'
+    date_string = '31JAN2019'
     url = url(search_string, date_string)
     print(url)
     # https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?segmentLink=17&instrument=OPTIDX&symbol=BANKNIFTY&date=29NOV2018
@@ -102,8 +102,10 @@ if __name__ == '__main__':
 
     df = get_dataframe(url, css_id, column_names)
 
-    print(df.head())
+    print(df.head(10))
     """
+    example output
+    
          c_oi c_chng_in_oi c_volume   ...    p_volume p_chng_in_oi     p_oi
     0   2,120            -       26   ...          78          -20   38,460
     1       -            -        -   ...          52          540    5,660
